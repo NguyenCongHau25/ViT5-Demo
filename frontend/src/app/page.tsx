@@ -48,7 +48,6 @@ export default function Home() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-gray-900 leading-tight">Dịch Phương Ngữ</h1>
-          <p className="text-sm text-gray-500 leading-tight">AI hỗ trợ chuyển đổi ngôn ngữ vùng miền</p>
         </div>
       </header>
 
@@ -56,10 +55,10 @@ export default function Home() {
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 flex flex-col relative z-0">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            ViDialect - Công cụ dịch phương ngữ chuẩn AI
+            ViDialect
           </h2>
           <p className="text-md text-gray-600 mt-2 max-w-3xl">
-            Nhập văn bản tiếng địa phương vào ô bên dưới, hệ thống AI của chúng tôi sẽ dịch sang tiếng Việt phổ thông chuẩn mực và dễ hiểu nhất.
+            Nhập văn bản tiếng địa phương vào ô bên dưới, hệ thống của chúng tôi sẽ dịch sang tiếng Việt phổ thông chuẩn mực và dễ hiểu nhất.
           </p>
         </div>
 
@@ -110,11 +109,10 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 py-4 px-8 mt-12 flex items-center justify-between z-10">
-        <div className="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-white text-xs font-bold font-mono">
-          N
+        <div className=" flex items-center justify-center text-white text-xs font-bold font-mono">
         </div>
         <p className="text-sm text-gray-500">
-          © 2026 Dịch Phương Ngữ Demo. Mô hình Deep Learning đã được huấn luyện.
+          STATE OF THE ART DỊCH PHƯƠNG NGỮ VIỆT NAM
         </p>
         <div className="w-8"></div> {/* Spacer for center alignment */}
       </footer>

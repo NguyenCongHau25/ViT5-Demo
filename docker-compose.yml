@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./backend:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    # For macOS Apple Silicon (M-series), MPS is supported by PyTorch and doesn't require docker-specific configs like NVIDIA GPUs.
+    # It will fallback to CPU inside Docker unless you build a specialized image with GPU pass-through (only readily available for NVIDIA). 
+    # For native performance on macOS, running outside of Docker is recommended for the backend inference, but it will work here (on CPU/Docker VM).
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:7860
+    depends_on:
+      - backend

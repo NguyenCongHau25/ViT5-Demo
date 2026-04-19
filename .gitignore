@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# Node/Frontend
+node_modules/
+.next/
+out/
+build/
+.env*.local
+
+# Python/Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+
+# AI Models & Large Weights (Heavy files)
+**/*.safetensors
+**/*.bin
+**/*.pt
+**/*.pth
+**/*.h5
+**/*.msgpack
+backend/checkpoint/model.safetensors
+predict_temp/
+vit5_dialect_fair/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/

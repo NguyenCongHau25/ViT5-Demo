@@ -1,9 +1,13 @@
 from pathlib import Path
 
+import torch
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import AutoModelForSeq2SeqLM, T5Tokenizer
+
+# Giới hạn số luồng CPU để kiểm soát RAM
+torch.set_num_threads(4)
 
 app = FastAPI()
 
@@ -17,13 +21,23 @@ app.add_middleware(
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "checkpoint"
-TOKENIZER_PATH = BASE_DIR / "local_tokenizer"
+TOKENIZER_PATH = BASE_DIR / "checkpoint"
 
 try:
     print(f"Loading tokenizer from {TOKENIZER_PATH}...")
     tokenizer = T5Tokenizer.from_pretrained(str(TOKENIZER_PATH), local_files_only=True)
     print(f"Loading model from {MODEL_PATH}...")
-    model = AutoModelForSeq2SeqLM.from_pretrained(str(MODEL_PATH), local_files_only=True)
+    # Load model với float16/bfloat16 để giảm dung lượng RAM, hoặc tuỳ fallback. 
+    # Nếu chạy CPU dùng float32 mặc định hoặc có thể giảm xuống để tiết kiệm RAM.
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    
+    model = AutoModelForSeq2SeqLM.from_pretrained(str(MODEL_PATH), local_files_only=True).to(device)
+    model.eval() # Chuyển sang chế độ evaluation để tối ưu inference
     print("Model loaded successfully!")
 except Exception as e:
     print(f"Error loading model: {e}")
@@ -57,8 +71,13 @@ def generate(request: GenerationRequest):
     # Prefix required by the fine-tuned model
     input_text = "dịch: " + request.prompt
 
-    input_ids = tokenizer(input_text, return_tensors="pt", max_length=128, truncation=True).input_ids
-    outputs = model.generate(input_ids, max_length=request.max_length, num_beams=4, early_stopping=True)
+    device = next(model.parameters()).device
+    input_ids = tokenizer(input_text, return_tensors="pt", max_length=128, truncation=True).input_ids.to(device)
+    
+    with torch.no_grad(): # CHÚ Ý: Bắt buộc dùng no_grad khi inference để tránh rò rỉ và tràn RAM!
+        # Giảm num_beams hoặc dùng greedy search (bỏ num_beams) để tăng tốc độ dịch gấp nhiều lần
+        outputs = model.generate(input_ids, max_length=request.max_length, num_beams=2, early_stopping=True)
+    
     output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     return {"result": output_text}

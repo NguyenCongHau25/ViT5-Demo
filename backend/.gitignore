@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 checkpoint/model.safetensors
+checkpoint/training_args/data.pkl
+local_tokenizer/spiece.model
+local_tokenizer/.cache/
