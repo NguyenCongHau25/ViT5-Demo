@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Languages } from "lucide-react";
+import { Sparkles, Languages, X } from "lucide-react";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
@@ -72,12 +72,25 @@ export default function Home() {
                   Tiếng Địa Phương
                 </span>
               </div>
-              <textarea
-                className="flex-1 w-full bg-transparent resize-none outline-none text-gray-800 text-lg placeholder:text-gray-300"
-                placeholder="Nhập câu phương ngữ của bạn ở đây..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
+              <div className="relative flex-1">
+                <textarea
+                  className="flex-1 w-full h-full bg-transparent resize-none outline-none text-gray-800 text-lg placeholder:text-gray-300 pr-12"
+                  placeholder="Nhập câu phương ngữ của bạn ở đây..."
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+                {prompt && (
+                  <button
+                    onClick={() => {
+                      setPrompt("");
+                      setResult("");
+                    }}
+                    className="absolute top-0 right-0 p-1.5 rounded-full hover:bg-gray-200 transition"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Output Section */}
@@ -94,7 +107,9 @@ export default function Home() {
           </div>
 
           {/* Translate Button centrally overlapping */}
-          <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2">
+          
+        </div>
+        <div className="flex justify-center mt-10">
             <button
               onClick={handleTranslate}
               disabled={loading}
@@ -104,7 +119,6 @@ export default function Home() {
               {loading ? "Đang dịch..." : "Dịch ngay"}
             </button>
           </div>
-        </div>
       </main>
 
       {/* Footer */}

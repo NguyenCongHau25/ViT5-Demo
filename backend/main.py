@@ -1,9 +1,11 @@
 from pathlib import Path
+from unicodedata import normalize
 
 import torch
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import transformers
 from transformers import AutoModelForSeq2SeqLM, T5Tokenizer
 
 # Giới hạn số luồng CPU để kiểm soát RAM
@@ -50,17 +52,30 @@ class GenerationRequest(BaseModel):
     max_length: int = 50
 
 
+def get_runtime_info():
+    model_loaded = tokenizer is not None and model is not None
+    model_device = str(next(model.parameters()).device) if model_loaded else None
+    return {
+        "model_loaded": model_loaded,
+        "model_path": str(MODEL_PATH),
+        "tokenizer_path": str(TOKENIZER_PATH),
+        "device": model_device,
+        "python_transformers": transformers.__version__,
+        "python_torch": torch.__version__,
+    }
+
+
 @app.get("/")
 def root():
     return {
         "message": "Dialect translation API is running.",
-        "model_loaded": tokenizer is not None and model is not None,
+        **get_runtime_info(),
     }
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_loaded": tokenizer is not None and model is not None}
+    return {"status": "ok", **get_runtime_info()}
 
 
 @app.post("/generate")
@@ -69,7 +84,8 @@ def generate(request: GenerationRequest):
         return {"error": "Model not loaded properly on the server."}
 
     # Prefix required by the fine-tuned model
-    input_text = "dịch: " + request.prompt
+    normalized_prompt = normalize("NFC", request.prompt.strip())
+    input_text = "dịch: " + normalized_prompt
 
     device = next(model.parameters()).device
     input_ids = tokenizer(input_text, return_tensors="pt", max_length=128, truncation=True).input_ids.to(device)
@@ -78,6 +94,9 @@ def generate(request: GenerationRequest):
         # Giảm num_beams hoặc dùng greedy search (bỏ num_beams) để tăng tốc độ dịch gấp nhiều lần
         outputs = model.generate(input_ids, max_length=request.max_length, num_beams=2, early_stopping=True)
     
-    output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    output_text = normalize(
+        "NFC",
+        tokenizer.decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=False),
+    )
 
     return {"result": output_text}
